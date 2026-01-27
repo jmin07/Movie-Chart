@@ -1,0 +1,32 @@
+// 루트 build.gradle (공통 설정만)
+
+plugins {
+	id 'org.springframework.boot' version '3.5.9' apply(false)  		// ❌ 지금 프로젝트(루트)에 적용하지 않음
+	id 'io.spring.dependency-management' version '1.1.7' apply(false)   // ❌ 지금 프로젝트(루트)에 적용하지 않음
+}
+
+subprojects {	// root 를 제외한 모든 하위 모듈에 공통으로 적용할 설정
+	apply plugin: 'java'
+	apply plugin: 'io.spring.dependency-management'
+
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(17)
+		}
+	}
+
+	repositories {
+		mavenCentral()
+	}
+
+	configurations {
+		compileOnly {
+			extendsFrom annotationProcessor
+		}
+	}
+
+	dependencies {
+		compileOnly 'org.projectlombok:lombok:1.18.32'
+		annotationProcessor 'org.projectlombok:lombok:1.18.32'
+	}
+}

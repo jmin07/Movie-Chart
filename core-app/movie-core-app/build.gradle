@@ -1,0 +1,13 @@
+plugins {
+    id 'org.springframework.boot'  // 이 모듈을 Spring Boot 애플리케이션으로 만든다
+}
+
+dependencies {
+    implementation project(':domain:movie-user-domain')
+    implementation project(':domain:movie-chart-domain')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    testImplementation 'org.springframework.security:spring-security-test'
+}
