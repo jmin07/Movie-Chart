@@ -42,18 +42,34 @@ These additional references should also help you:
 
 ```
 movie
- ├─ core-app
- │   └─ movie-core-app
- │       ├─ security
- │       │   ├─ config
- │       │   ├─ jwt
- │       │   └─ session
- │       ├─ web
- │       ├─ application (usecase)
- │       └─ MovieApplication.java
- │
- └─ domain
-     ├─ movie-chart-domain
-     └─ movie-user-domain
+    ├─ core-app
+    │   └─ movie-core-app
+    │       ├─ security
+    │       │   ├─ config
+    │       │   ├─ jwt
+    │       │   └─ session
+    │       ├─ web
+    │       ├─ application (usecase)
+    │       └─ MovieApplication.java
+    │
+    └─ domain
+       ├─ movie-chart-domain
+       │  └─ movie
+       │     ├─ Movie.java
+       │     ├─ MovieId.java
+       │     └─ MovieRepository.java
+       │
+       └─ movie-user-domain
+          └─ account
+            ├─ Account.java                // Aggregate Root
+            ├─ AccountId.java              // Value Object
+            ├─ Email.java                  // Value Object
+            ├─ Password.java               // Value Object
+            ├─ AccountStatus.java          // Enum
+            ├─ UserRole.java               // Enum
+            ├─ AccountRepository.java      // Repository (interface)
+            └─ social
+               ├─ SocialAccount            // Entity (Account에 종속)
+               ├─ SocialProvider           // Enum (GOOGLE, KAKAO, NAVER)
+               └─ SocialAccountId          // VO (provider + providerUserId)
 ```
-

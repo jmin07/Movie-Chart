@@ -1,4 +1,4 @@
 package com.movie.user.account;
 
-public class User {
+public class AccountId {
 }
