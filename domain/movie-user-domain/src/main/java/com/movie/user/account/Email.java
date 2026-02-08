@@ -1,5 +1,7 @@
 package com.movie.user.account;
 
+import com.movie.user.account.exception.InvalidEmailException;
+
 import java.util.Objects;
 import java.util.regex.Pattern;
 

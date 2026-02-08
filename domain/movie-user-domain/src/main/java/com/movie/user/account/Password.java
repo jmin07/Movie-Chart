@@ -1,12 +1,6 @@
 package com.movie.user.account;
 
-public class Password {
-
-    private final String encoded;
-
-    private Password(String encoded) {
-        this.encoded = encoded;
-    }
+public record Password(String encoded) {
 
     // 정적 팩토리 메서드(static factory method)
     // 이 값은 이미 암호화된 비밀번호다 라는 도메인 규칙을 코드로 강제하는 장치.

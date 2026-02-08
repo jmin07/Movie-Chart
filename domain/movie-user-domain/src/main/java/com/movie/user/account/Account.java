@@ -1,5 +1,8 @@
 package com.movie.user.account;
 
+import com.movie.user.account.exception.AccountLockedException;
+import com.movie.user.account.exception.AccountNotActiveException;
+import com.movie.user.account.exception.InvalidPasswordException;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -8,18 +11,16 @@ import java.util.Objects;
 public class Account {
 
     // Aggregate Root 의 정체성을 나타내는 email, accountId
-    @Getter
-    private final Email email;
-    @Getter
-    private final AccountId id;
 
-    private Password password;      // 비밀번호 변경 가능/ 상태에 해당
-    @Getter
-    private AccountStatus status;
-    @Getter
-    private UserRole role;
+    private @Getter final Email email;
+    private @Getter final AccountId id;
 
-    private int loginFailCount;
+    private @Getter Password password;      // 비밀번호 변경 가능/ 상태에 해당
+
+    private @Getter AccountStatus status;
+    private @Getter UserRole role;
+
+    private @Getter int loginFailCount;
 
     private static final int MAX_LOGIN_FAIL_COUNT = 5;
 
@@ -28,30 +29,75 @@ public class Account {
             Email email,
             Password password,
             AccountStatus status,
-            UserRole role,
-            int loginFailCount
+            UserRole role
     ) {
-        this.id = Objects.requireNonNull(id);
-        this.email = Objects.requireNonNull(email);
-        this.password = Objects.requireNonNull(password);
-        this.status = Objects.requireNonNull(status);
-        this.role = Objects.requireNonNull(role);
-        this.loginFailCount = loginFailCount;
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.status = status;
+        this.role = role;
+        this.loginFailCount = 0;
+    }
+
+    // DB -> Domain
+    public static Account restore(
+            AccountId id,
+            Email email,
+            Password password,
+            AccountStatus status,
+            UserRole role
+    ) {
+        return new Account(id, email, password, status, role);
     }
 
     /* ---------- Domain Behavior ---------- */
 
+    public static Account create(
+            Email email,
+            Password encodedpassword,
+            UserRole role
+    ) {
+        return new Account(
+            null,       // DB에 아직 저장 안 됨
+            email,
+            encodedpassword,
+            AccountStatus.ACTIVE,
+            role
+        );
+    }
+
     public void authenticate(String rawPassword, PasswordMatcher matcher) {
-        if (status != AccountStatus.ACTIVE) {
-            throw new AccountNotActiveException();
-        }
+        validateLoginAvailable();
 
         if (!password.matches(rawPassword, matcher)) {
             increaseFailCount();
+
             throw new InvalidPasswordException();
         }
 
         resetFailCount();
+    }
+
+    private void validateLoginAvailable() {
+        if (status == AccountStatus.LOCKED) {
+            throw new AccountLockedException();
+        }
+
+        if (status != AccountStatus.ACTIVE) {
+            throw new AccountNotActiveException();
+        }
+    }
+
+    private void increaseFailCount() {
+        loginFailCount++;
+
+        if (loginFailCount >= MAX_LOGIN_FAIL_COUNT) {
+            this.status = AccountStatus.LOCKED;
+        }
+    }
+
+    private void resetFailCount() {
+        loginFailCount = 0;
     }
 
     public void changePassword(
@@ -65,15 +111,7 @@ public class Account {
         this.password = newEncodedPassword;
     }
 
-    private void increaseFailCount() {
-        loginFailCount++;
-        if (loginFailCount >= MAX_LOGIN_FAIL_COUNT) {
-            this.status = AccountStatus.LOCKED;
-        }
-    }
 
-    private void resetFailCount() {
-        loginFailCount = 0;
-    }
+
 
 }
