@@ -3,8 +3,10 @@ package com.movie.user.account;
 import com.movie.user.account.exception.AccountLockedException;
 import com.movie.user.account.exception.AccountNotActiveException;
 import com.movie.user.account.exception.InvalidPasswordException;
+import com.movie.user.account.social.SocialProvider;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 // Aggregate Root
@@ -19,6 +21,10 @@ public class Account {
 
     private @Getter AccountStatus status;
     private @Getter UserRole role;
+    private @Getter SocialProvider socialProvider;
+    private @Getter String providerUserId;
+    private @Getter String profileImageUrl;
+    private @Getter LocalDateTime lastLoginAt;
 
     private @Getter int loginFailCount;
 
@@ -29,14 +35,23 @@ public class Account {
             Email email,
             Password password,
             AccountStatus status,
-            UserRole role
+            UserRole role,
+            SocialProvider socialProvider,
+            String providerUserId,
+            String profileImageUrl,
+            LocalDateTime lastLoginAt,
+            int loginFailCount
     ) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.status = status;
         this.role = role;
-        this.loginFailCount = 0;
+        this.socialProvider = socialProvider;
+        this.providerUserId = providerUserId;
+        this.profileImageUrl = profileImageUrl;
+        this.lastLoginAt = lastLoginAt;
+        this.loginFailCount = loginFailCount;
     }
 
     // DB -> Domain
@@ -45,9 +60,25 @@ public class Account {
             Email email,
             Password password,
             AccountStatus status,
-            UserRole role
+            UserRole role,
+            SocialProvider socialProvider,
+            String providerUserId,
+            String profileImageUrl,
+            LocalDateTime lastLoginAt,
+            int loginFailCount
     ) {
-        return new Account(id, email, password, status, role);
+        return new Account(
+                id,
+                email,
+                password,
+                status,
+                role,
+                socialProvider,
+                providerUserId,
+                profileImageUrl,
+                lastLoginAt,
+                loginFailCount
+        );
     }
 
     /* ---------- Domain Behavior ---------- */
@@ -62,8 +93,43 @@ public class Account {
             email,
             encodedpassword,
             AccountStatus.ACTIVE,
-            role
+            role,
+            SocialProvider.LOCAL,
+            null,
+            null,
+            null,
+            0
         );
+    }
+
+    public static Account createSocial(
+            Email email,
+            Password encodedPassword,
+            UserRole role,
+            SocialProvider socialProvider,
+            String providerUserId,
+            String profileImageUrl
+    ) {
+        return new Account(
+                null,
+                email,
+                encodedPassword,
+                AccountStatus.ACTIVE,
+                role,
+                socialProvider,
+                providerUserId,
+                profileImageUrl,
+                null,
+                0
+        );
+    }
+
+    public boolean updateProfileImageUrlIfChanged(String newProfileImageUrl) {
+        if (Objects.equals(this.profileImageUrl, newProfileImageUrl)) {
+            return false;
+        }
+        this.profileImageUrl = newProfileImageUrl;
+        return true;
     }
 
     public void authenticate(String rawPassword, PasswordMatcher matcher) {
@@ -76,6 +142,10 @@ public class Account {
         }
 
         resetFailCount();
+    }
+
+    public void markLoginSuccess() {
+        this.lastLoginAt = LocalDateTime.now();
     }
 
     private void validateLoginAvailable() {

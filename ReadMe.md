@@ -73,3 +73,21 @@ movie
                ├─ SocialProvider           // Enum (GOOGLE, KAKAO, NAVER)
                └─ SocialAccountId          // VO (provider + providerUserId)
 ```
+
+### DDD에서 UseCase 작성 원칙
+UseCase(Application Service)는 "사용자 시나리오"를 오케스트레이션하고, 도메인 규칙의 실행은 도메인 모델에 위임합니다.
+
+* UseCase의 책임
+  * 트랜잭션 경계에서 유스케이스 흐름 제어
+  * 도메인 객체 조회/저장(Repository 인터페이스 사용)
+  * Port(interface)를 통해 외부 시스템(infra) 호출
+* UseCase가 하지 않아야 할 것
+  * HTTP 요청/응답 처리 (Controller 책임)
+  * SQL/ORM 상세 구현 (Persistence Adapter 책임)
+  * 외부 API SDK 세부 구현 (Infra Adapter 책임)
+* 본 프로젝트 적용 방식
+  * `LoginUseCase`/`RegisterUseCase`/`SocialLoginUseCase`는 `domain` 모델(`Account`)의 메서드를 호출해 비즈니스 규칙을 실행
+  * 소셜 인증 연동은 `SocialAuthorizationPort`, `SocialTokenPort`, `SocialProfilePort`를 통해 의존성 역전(DIP) 적용
+  * 실제 구현체는 `security/social` 패키지의 adapter가 담당
+
+즉, 변경이 잦은 기술 요소(보안/외부 API/DB)는 바깥으로 밀어내고, UseCase는 도메인 언어와 시나리오 중심으로 유지합니다.
